@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
-from tradeable import TradeableItem
+from tradeable_item import TradeableItem
 
 def main():
 
-    iphone = TradeableItem("iphone")
-    print(iphone.id)
-
+    magicLogs = TradeableItem("Magic Logs")
+    t = magicLogs.table
+    print(t.head())
+    print(t.shape)
     return
 
 if __name__=="__main__":
