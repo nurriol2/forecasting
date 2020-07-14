@@ -12,10 +12,12 @@ class TradeableItem:
 
     def __init__(self, name):
         self.name = name.lower().strip("\n")
-        self.id = self._initialize_item_id()
-        self.GRAPH_URL = self.BASE_URL + "/api/graph/{}.json".format(self.id)
-        self.VOLUME_URL = self.BASE_URL + "/{}/viewitem?obj={}".format(self.name.replace(' ', "+"), self.id)
-        self.table = self._initialize_table()
+        self.id = None 
+        self.GRAPH_URL = None
+        self.VOLUME_URL = None
+        self.table = None
+
+        self._finish_initializing() 
         
         return
 
@@ -30,6 +32,13 @@ class TradeableItem:
     
     def _initialize_item_id(self):
         return self._search_id_by_name()
+
+    def _finish_initializing(self):
+        self.id = self._initialize_item_id()
+        self.GRAPH_URL = self.BASE_URL + "/api/graph/{}.json".format(self.id)
+        self.VOLUME_URL = self.BASE_URL + "/{}/viewitem?obj={}".format(self.name.replace(' ', "+"), self.id)
+        self.table = self._initialize_table() 
+        return
 
     #web scraping
     def _collect_price_time_series(self):
