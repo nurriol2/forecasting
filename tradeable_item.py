@@ -112,8 +112,6 @@ class TradeableItem:
                 t = t.strip("Date('").strip("')'")
                 volume_series[t] = v
         return volume_series
-    
-
 
     def _initialize_table(self):
         """Populate the `table` attribute with daily close, daily average, and
@@ -131,12 +129,16 @@ class TradeableItem:
         #each series is concurrent
         #so, the timestamps from the daily close series represents all timestamps
         timestamp = pd.to_datetime(list(close_series.keys()), unit="ms")
+
         #dump the signal data into lists
         volume = list(volume_series.values())
         close = list(close_series.values())
         average = list(average_series.values())
 
-        data = {"Close":close, "Average":average, "Volume":volume}
+        #PROBLEM:   (checked at 14/6/20 00:49) Volume time series size is mismatching Close and Average. 
+        #           However, wrote test on 13/06/20 to explicitly check that the size was 180 and
+        #           all the tests passed, then.
+        data = {"Close":close, "Average":average, "Volume":volume} 
         #index the DataFrame by ms since epoch
         df = pd.DataFrame(data=data, index=timestamp)
         
