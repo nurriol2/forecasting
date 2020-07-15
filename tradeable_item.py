@@ -119,7 +119,7 @@ class TradeableItem:
         The table is indexed on timestamps of each data point.
 
         Returns:
-            pandas.DataFrame: A 180x3 DataFrame.
+            pandas.DataFrame: A 179x3 DataFrame.
             Columns:  Close, Average, Volume
             Index: Timestamps as pandas datetime objects
         """
@@ -128,16 +128,17 @@ class TradeableItem:
 
         #each series is concurrent
         #so, the timestamps from the daily close series represents all timestamps
-        timestamp = pd.to_datetime(list(close_series.keys()), unit="ms")
+        timestamp = pd.to_datetime(list(close_series.keys()), unit="ms")[1:]
 
         #dump the signal data into lists
         volume = list(volume_series.values())
-        close = list(close_series.values())
-        average = list(average_series.values())
+        close = list(close_series.values())[1:]
+        average = list(average_series.values())[1:]
 
         #PROBLEM:   (checked at 14/6/20 00:49) Volume time series size is mismatching Close and Average. 
         #           However, wrote test on 13/06/20 to explicitly check that the size was 180 and
         #           all the tests passed, then.
+        #SOLVED:    slice PRICE time series to exclude the 0th entry
         data = {"Close":close, "Average":average, "Volume":volume} 
         #index the DataFrame by ms since epoch
         df = pd.DataFrame(data=data, index=timestamp)
