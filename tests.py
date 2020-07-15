@@ -11,6 +11,6 @@ class Test(unittest.TestCase):
         colnames = ["Close", "Average", "Volume"]
 
         for colname in colnames:
-            assert dagger.table[colname].size == 180
+            assert dagger.table[colname].size == 179
 
         return
