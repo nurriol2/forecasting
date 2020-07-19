@@ -12,7 +12,7 @@
     - %d%m%y fromat
     ---
     *columns*
-    - daily closing price
+    - daily closing price`
     - average daily price
     - trade volume
 
@@ -40,15 +40,29 @@
 - ~~search item id from name~~
 - web scraping 
     - ~~format endpoints from item id~~
-    - parse html for volume data 
-    - format API response 
-        - timestamps --> %d%m%y
-        - fill NaN
-        - int and string data where needed
-    - saving scraped data to disk
+    - ~~parse html for volume data~~ 
+    - ~~format API response~~
+        - ~~timestamps --> %d%m%y~~
+        - ~~fill NaN~~
+        - ~~int and string data where needed~~
+    - ~~saving scraped data to disk~~
 - plotting
     - automatic title and y-axis handling
     - saving plots to disk
 - appending new data
     - verify new data size
+
+# Invested Items
+*Items that I most frequently trade. Ones that I would benefit most from knowing price fluctuations*
+
+*S-tier*
+1. Dragon bones
+2. Black dragonhide
+3. Red chinchompa
+4. Magic logs
+---
+*A-tier*
+5. Yew longbow
+6. Black chinchompa
+7. Raw monkfish
 
