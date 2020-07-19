@@ -3,8 +3,9 @@
 import re
 import requests
 import pandas as pd
+from datetime import date
 from item_ids import items 
-from exceptions import InvalidItemIDError
+from exceptions import InvalidItemIDError, MismatchedSeriesSizeError
 
 class TradeableItem:
 
@@ -110,8 +111,23 @@ class TradeableItem:
                 t, v = tuple(pair.split(','))
                 #remove text surrounding Y/M/D piece of timestamp
                 t = t.strip("Date('").strip("')'")
-                volume_series[t] = v
+                volume_series[t] = int(v)
         return volume_series
+
+    def _verify_concurrent_data(self, time, signals):
+        """Check that the number of records in each signal of `signals` matches the number of timestamps in `time`
+
+        Args:
+            time (list, int): timesteps of the time series 
+            signals (list, dict): dictionary representations of each time series being used to initialize the dataframe 
+        """
+
+        expected_npts = len(time)
+        for i, d in enumerate(signals):
+            candidate = len(d)
+            if (candidate!=expected_npts):
+                raise MismatchedSeriesSizeError(expected_npts, candidate, i)
+        return
 
     def _initialize_table(self):
         """Populate the `table` attribute with daily close, daily average, and
@@ -119,28 +135,40 @@ class TradeableItem:
         The table is indexed on timestamps of each data point.
 
         Returns:
-            pandas.DataFrame: A 179x3 DataFrame.
+            pandas.DataFrame: A 180x3 DataFrame.
             Columns:  Close, Average, Volume
             Index: Timestamps as pandas datetime objects
         """
+
         close_series, average_series = self._collect_price_time_series()
         volume_series = self._collect_volume_time_series()
 
-        #each series is concurrent
-        #so, the timestamps from the daily close series represents all timestamps
-        timestamp = pd.to_datetime(list(close_series.keys()), unit="ms")[1:]
 
-        #dump the signal data into lists
-        volume = list(volume_series.values())
-        close = list(close_series.values())[1:]
-        average = list(average_series.values())[1:]
+        #separate the time series signal from the timestamp for each time series
+        #signals
+        volume = list(volume_series.values())[:-1] #trim signal from "today"
+        close = list(close_series.values())[2:] #trim the offset with volume
+        average = list(average_series.values())[2:] #trim the offset with volume
 
-        #PROBLEM:   (checked at 14/6/20 00:49) Volume time series size is mismatching Close and Average. 
-        #           However, wrote test on 13/06/20 to explicitly check that the size was 180 and
-        #           all the tests passed, then.
-        #SOLVED:    slice PRICE time series to exclude the 0th entry
-        data = {"Close":close, "Average":average, "Volume":volume} 
-        #index the DataFrame by ms since epoch
-        df = pd.DataFrame(data=data, index=timestamp)
-        
+        #timestamps
+        timestamps = pd.to_datetime(list(close_series.keys())[2:], unit="ms")
+
+        #verify that the number of data points matches the number of timestamps
+        self._verify_concurrent_data(timestamps, [volume, close, average])
+
+        data = {"Timestamps":timestamps, "Close":close, "Average":average, "Volume":volume}
+        df = pd.DataFrame(data=data)
+
         return df
+
+    def save_table_to_file(self):
+        """Download the current state of `table` as a csv file in the current directory.
+        """
+        
+        #format the filename
+        current_date = date.today().strftime("%d-%m-%Y")
+        filename = self.name.replace(' ', "_") + '_' + current_date + ".txt"
+        
+        self.table.to_csv(filename, index_label="Index")
+
+        return
