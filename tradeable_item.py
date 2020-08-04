@@ -5,6 +5,7 @@ import requests
 import pandas as pd
 from datetime import date
 from item_ids import items 
+from time_series import TimeSeries
 from exceptions import InvalidItemIDError, MismatchedSeriesSizeError
 
 class TradeableItem:
@@ -85,7 +86,8 @@ class TradeableItem:
         r = requests.get(self.GRAPH_URL)
         #dictionary of 2 dictionaries, "daily" and "average"
         response = r.json()
-        daily_series, average_series = (response["daily"], response["average"])
+        daily_series = TimeSeries.from_dictionary(response["daily"])
+        average_series = TimeSeries.from_dictionary(response["average"])
         return (daily_series, average_series)
 
     def _collect_volume_time_series(self):
@@ -112,6 +114,7 @@ class TradeableItem:
                 #remove text surrounding Y/M/D piece of timestamp
                 t = t.strip("Date('").strip("')'")
                 volume_series[t] = int(v)
+        volume_series = TimeSeries.from_dictionary(volume_series)
         return volume_series
 
     def _verify_concurrent_data(self, time, signals):
@@ -143,23 +146,17 @@ class TradeableItem:
         close_series, average_series = self._collect_price_time_series()
         volume_series = self._collect_volume_time_series()
 
+        print("VOLUME", volume_series.timestamps[0], volume_series.timestamps[-1])
+        print("CLOSE", pd.to_datetime(int(close_series.timestamps[0]), unit="ms"), pd.to_datetime(int(close_series.timestamps[-1]), unit="ms"))
+        print(len(volume_series.timestamps)==len(close_series.timestamps)==180)
 
-        #separate the time series signal from the timestamp for each time series
-        #signals
-        volume = list(volume_series.values())[:-1] #trim signal from "today"
-        close = list(close_series.values())[2:] #trim the offset with volume
-        average = list(average_series.values())[2:] #trim the offset with volume
+        timestamps = pd.to_datetime(close_series.timestamps, unit="ms")
+        data = {"Timestamps":timestamps, "Close":close_series.signal, "Average":average_series.signal, "Trade Volume":volume_series.signal}
 
-        #timestamps
-        timestamps = pd.to_datetime(list(close_series.keys())[2:], unit="ms")
-
-        #verify that the number of data points matches the number of timestamps
-        self._verify_concurrent_data(timestamps, [volume, close, average])
-
-        data = {"Timestamps":timestamps, "Close":close, "Average":average, "Volume":volume}
         df = pd.DataFrame(data=data)
-
         return df
+
+
 
     def save_table_to_file(self):
         """Download the current state of `table` as a csv file in the current directory.
