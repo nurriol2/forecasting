@@ -3,7 +3,6 @@
 class InvalidItemIDError(Exception):
     """Raised when `name` is not found in `item_ids.py`
     """
-
     def __init__(self, message="The entered name did not yield a valid item ID. Item id:  None"):
         self.message = message
         super().__init__(self.message)
@@ -17,3 +16,11 @@ class MismatchedSeriesSizeError(Exception):
         self.seriesID = seriesID
         self.message = "One or more columns has a different size than expected.\nExpecting {} entries.\nGot {} entries in series {}.".format(self.expected_npts, self.candidate, self.seriesID)
         super().__init__(self.message)
+
+class TimestampError(Exception):
+    """Time stamps do not match any recognized pattern
+    """
+    def __init__(self, message):
+        self.message = "Unexpected timestamp pattern from TimeSeries"
+        super().__init__(self.message)
+
