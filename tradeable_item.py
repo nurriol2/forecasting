@@ -127,7 +127,7 @@ class TradeableItem:
             Columns:  Close, Average, Volume
             Index: Timestamps as pandas datetime objects
         """
-
+        #TODO:  clean up series conversions
         close_series, average_series = self._collect_price_time_series()
         volume_series = self._collect_volume_time_series()
 
