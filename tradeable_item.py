@@ -117,21 +117,6 @@ class TradeableItem:
         volume_series = TimeSeries.from_dictionary(volume_series)
         return volume_series
 
-    def _verify_concurrent_data(self, time, signals):
-        """Check that the number of records in each signal of `signals` matches the number of timestamps in `time`
-
-        Args:
-            time (list, int): timesteps of the time series 
-            signals (list, dict): dictionary representations of each time series being used to initialize the dataframe 
-        """
-
-        expected_npts = len(time)
-        for i, d in enumerate(signals):
-            candidate = len(d)
-            if (candidate!=expected_npts):
-                raise MismatchedSeriesSizeError(expected_npts, candidate, i)
-        return
-
     def _initialize_table(self):
         """Populate the `table` attribute with daily close, daily average, and
         trade volume data for the last 6 months. 
@@ -146,14 +131,13 @@ class TradeableItem:
         close_series, average_series = self._collect_price_time_series()
         volume_series = self._collect_volume_time_series()
 
-        print("VOLUME", volume_series.timestamps[0], volume_series.timestamps[-1])
-        print("CLOSE", pd.to_datetime(int(close_series.timestamps[0]), unit="ms"), pd.to_datetime(int(close_series.timestamps[-1]), unit="ms"))
-        print(len(volume_series.timestamps)==len(close_series.timestamps)==180)
-
-        timestamps = pd.to_datetime(close_series.timestamps, unit="ms")
-        data = {"Timestamps":timestamps, "Close":close_series.signal, "Average":average_series.signal, "Trade Volume":volume_series.signal}
-
-        df = pd.DataFrame(data=data)
+        vdf = volume_series.to_pandas_dataframe("Volume")
+        cdf = close_series.to_pandas_dataframe("Close")
+        adf = average_series.to_pandas_dataframe("Average")
+        #outer join close and average
+        price_df = cdf.join(adf, on=None, how='left', lsuffix="_close", rsuffix="_average")
+        
+        df = price_df.merge(vdf, how="outer", left_on=price_df["Timestamps_close"], right_on=vdf["Timestamps"], validate="one_to_one").dropna()
         return df
 
 
