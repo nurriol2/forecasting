@@ -38,6 +38,19 @@ class TimeSeries:
         self.signal = list(data.values())
         return TimeSeries(self.timestamps, self.signal)
 
+    @classmethod
+    def to_pandas_dataframe(self, signal_name):
+        """Populate a pandas DataFrame using TimeSeries data
+
+        Args:
+            signal_name (string): The name of the signal column
+
+        Returns:
+            pandas.DataFrame: A DataFrame populated with the TimeSeries data
+        """
+        df = pd.DataFrame({"Timestamps":self.timestamps, signal_name:self.signal})
+        return df
+
     def _format_timestamps(self):
         """Convert timestamps into datetime objects
 
