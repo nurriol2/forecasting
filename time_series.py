@@ -38,7 +38,6 @@ class TimeSeries:
         self.signal = list(data.values())
         return TimeSeries(self.timestamps, self.signal)
 
-    @classmethod
     def to_pandas_dataframe(self, signal_name):
         """Populate a pandas DataFrame using TimeSeries data
 
