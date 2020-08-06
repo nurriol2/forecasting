@@ -134,13 +134,13 @@ class TradeableItem:
         vdf = volume_series.to_pandas_dataframe("Volume")
         cdf = close_series.to_pandas_dataframe("Close")
         adf = average_series.to_pandas_dataframe("Average")
+        
         #outer join close and average
-        price_df = cdf.join(adf, on=None, how='left', lsuffix="_close", rsuffix="_average")
+        price_df = cdf.join(adf, on=None, how="outer", lsuffix="_close", rsuffix="_average")
         
         df = price_df.merge(vdf, how="outer", left_on=price_df["Timestamps_close"], right_on=vdf["Timestamps"], validate="one_to_one").dropna()
+        df = df.rename(columns={"key_0":"Item Timestamps"})
         return df
-
-
 
     def save_table_to_file(self):
         """Download the current state of `table` as a csv file in the current directory.
@@ -148,8 +148,7 @@ class TradeableItem:
         
         #format the filename
         current_date = date.today().strftime("%d-%m-%Y")
-        filename = self.name.replace(' ', "_") + '_' + current_date + ".txt"
+        filename = self.name.replace(' ', "_") + '_' + current_date + ".csv"
         
         self.table.to_csv(filename, index_label="Index")
-
         return
