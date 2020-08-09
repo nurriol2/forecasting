@@ -1,8 +1,14 @@
 #!/usr/bin/env python3
 
+#TODO:  clean up series conversions
+#TODO:  experiment with different line widths for *SAVED* bar graphs
+
 import re
 import requests
 import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib import rcParams
+rcParams.update({'figure.autolayout': True})
 from datetime import date
 from item_ids import items 
 from time_series import TimeSeries
@@ -34,7 +40,6 @@ class TradeableItem:
         self.table = table
 
         self._finish_initializing() 
-        
         return
 
     def _search_id_by_name(self):
@@ -72,7 +77,7 @@ class TradeableItem:
         self.table = self._initialize_table() 
         return
 
-    #web scraping
+    ### WEB SCRAPING ###
     def _collect_price_time_series(self):
         """Parse the requested JSON for daily close time series data 
         and daily average time series data.
@@ -117,6 +122,7 @@ class TradeableItem:
         volume_series = TimeSeries.from_dictionary(volume_series)
         return volume_series
 
+    ### PREPROCESSING ###
     def _initialize_table(self):
         """Populate the `table` attribute with daily close, daily average, and
         trade volume data for the last 6 months. 
@@ -127,7 +133,7 @@ class TradeableItem:
             Columns:  Close, Average, Volume
             Index: Timestamps as pandas datetime objects
         """
-        #TODO:  clean up series conversions
+        
         close_series, average_series = self._collect_price_time_series()
         volume_series = self._collect_volume_time_series()
 
@@ -142,13 +148,57 @@ class TradeableItem:
         df = df.rename(columns={"key_0":"Item Timestamps"})
         return df
 
+    ### PLOTTING ###
+    def plot_bar_graph(self, index, signal, title, ylabel="", steps=25, save_plot=True, verbose=False):
+        """Pandas + Matplotlib plotting wrapper that automatically handles x-axis formatting for 
+        better looking labels.
+
+        Args:
+            index (string): The name of the column holding the x-axis data.
+            signal (list): A list of strings for each column name with y-data.
+            title (string): Title for the plot.
+            ylabel (string, optional): Label for the y-axis. Defaults to "".
+            steps (int, optional): Spacing between x-axis labels. Defaults to 25.
+            save_plot (bool, optional): Flag for if the plot should be saved. Defaults to True.
+            verbose (bool, optional): Flag for if the plot should be displayed. Defaults to False.
+        """
+
+        #grab the x-axis data
+        data = {index:self.table[index]}
+        #grab the y-axis data
+        for i in signal:
+            data[i] = self.table[i]
+        df = pd.DataFrame(data=data)
+        ax = df.plot.bar(x=index, title=title, rot=35)
+        
+        #x-axis tick marks formatting
+        ticks = ax.xaxis.get_ticklocs()
+        ticklabels = [l.get_text() for l in ax.xaxis.get_ticklabels()]
+        #set tick marks at intervals of `steps` using the record value in the index column
+        ax.xaxis.set_ticks(ticks[::steps])
+        ax.xaxis.set_ticklabels(ticklabels[::steps])
+
+        #axis labels
+        ax.set(xlabel="Date", ylabel=ylabel)
+
+        
+        if save_plot:
+            filename = title.lower().replace(' ', '_') + "_bar_plot.png"
+            plt.savefig(filename)
+        if verbose:
+            plt.show()
+        return 
+
+    ### FILES OUT ###
     def save_table_to_file(self):
         """Download the current state of `table` as a csv file in the current directory.
         """
         
         #format the filename
         current_date = date.today().strftime("%d-%m-%Y")
-        filename = self.name.replace(' ', "_") + '_' + current_date + ".csv"
+        filename = self.name.replace(' ', '_') + '_' + current_date + ".csv"
         
         self.table.to_csv(filename, index_label="Index")
         return
+
+    
