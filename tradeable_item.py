@@ -2,6 +2,7 @@
 
 #TODO:  clean up series conversions
 #TODO:  experiment with different line widths for *SAVED* bar graphs
+#TODO:  condense bar and line plotting
 
 import re
 import requests
@@ -150,7 +151,7 @@ class TradeableItem:
 
     ### PLOTTING ###
     def plot_bar_graph(self, index, signal, title, ylabel="", steps=25, save_plot=True, verbose=False):
-        """Pandas + Matplotlib plotting wrapper that automatically handles x-axis formatting for 
+        """Create a bar plot. Pandas + Matplotlib plotting wrapper that automatically handles x-axis formatting for 
         better looking labels.
 
         Args:
@@ -188,6 +189,34 @@ class TradeableItem:
         if verbose:
             plt.show()
         return 
+
+    def plot_time_series(self, index, signal, title, ylabel="", save_plot=True, verbose=False):
+        """Create a line plot. Pandas + Matplotlib plotting wrapper.
+
+        Args:
+            index (string): The name of the column holding the x-axis data.
+            signal (list): A list of strings for each column name with y-data.
+            title (string): Title for the plot.
+            ylabel (string, optional): Label for the y-axis. Defaults to "".
+            save_plot (bool, optional): Flag for if the plot should be saved. Defaults to True.
+            verbose (bool, optional): Flag for if the plot should be displayed. Defaults to False.
+        """
+        data = {index:self.table[index]}
+        #grab the y-axis data
+        for i in signal:
+            data[i] = self.table[i]
+        df = pd.DataFrame(data=data)
+        ax = df.plot(x=index, title=title, rot=35)
+
+        #axis labels
+        ax.set(xlabel="Date", ylabel=ylabel)
+
+        if save_plot:
+            filename = title.lower().replace(' ', '_') + "_bar_plot.png"
+            plt.savefig(filename)
+        if verbose:
+            plt.show()
+        return
 
     ### FILES OUT ###
     def save_table_to_file(self):
