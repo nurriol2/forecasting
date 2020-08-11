@@ -11,7 +11,7 @@ def main():
     table = chins.table
 
     chins.plot_bar_graph("Item Timestamps", ["Volume"], "Volume of Units Moved per Day", ylabel="# of Red Chinchompas", save_plot=False)
-    
+    chins.plot_time_series("Item Timestamps", ["Close", "Average"], "Red Chins Closing and Average Price", ylabel="(GP)", save_plot=False, verbose=True)
 
     return
 
