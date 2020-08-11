@@ -2,11 +2,12 @@
 
 #TODO:  clean up series conversions
 #TODO:  experiment with different line widths for *SAVED* bar graphs
-#TODO:  condense bar and line plotting
+#TODO:  condense main parts of plotting methods
 
 import re
 import requests
 import pandas as pd
+import seaborn as sn
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 rcParams.update({'figure.autolayout': True})
@@ -217,6 +218,34 @@ class TradeableItem:
         if verbose:
             plt.show()
         return
+
+    def correlation_matrix(self, signal, title, save=True, verbose=False):
+        """Create a correlation matrix between different columns. Pandas + Matplotlib + Seaborn wrapper.
+
+        Args:
+            signal (list): A list of strings for each column name with data to include in correlation matrix.
+            title (string): Filename for saved figure.
+            save (bool, optional): Flag for if the correlation matrix figure should be saved. Defaults to True.
+            verbose (bool, optional): Flag for if the corrleation matrix should be displayed. Defaults to False.
+
+        Returns:
+            pandas.DataFrame: A dataframe representation of the correlation matrix.
+        """
+        data = {}
+        #populate dictionary with data
+        for i in signal:
+            data[i] = self.table[i]
+        df = pd.DataFrame(data=data)
+
+        correlation_mtx = df.corr()
+        
+        if save:
+            filename = title.lower().replace(' ', '_') + "_bar_plot.png"
+            plt.savefig(filename)
+        if verbose:
+            sn.heatmap(correlation_mtx, annot=True)
+            plt.show()
+        return correlation_mtx
 
     ### FILES OUT ###
     def save_table_to_file(self):
