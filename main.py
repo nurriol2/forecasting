@@ -10,9 +10,10 @@ def main():
     chins = TradeableItem("Red chinchompa")
     table = chins.table
 
-    chins.plot_bar_graph("Item Timestamps", ["Volume"], "Volume of Units Moved per Day", ylabel="# of Red Chinchompas", save_plot=False)
-    chins.plot_time_series("Item Timestamps", ["Close", "Average"], "Red Chins Closing and Average Price", ylabel="(GP)", save_plot=False, verbose=True)
-
+    chins.plot_bar_graph("Item Timestamps", ["Volume"], "Volume of Units Moved per Day", ylabel="# of Red Chinchompas", save_plot=False, verbose=True)
+    chins.plot_time_series("Item Timestamps", ["Close", "Average"], "Red Chins Closing and Average Price", ylabel="Price (GP)", save_plot=False, verbose=True)
+    chins.correlation_matrix(["Close", "Average", "Volume"], "Correlation Matrix", save=False, verbose=True)
+    
     return
 
 if __name__=="__main__":
