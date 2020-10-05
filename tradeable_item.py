@@ -61,6 +61,7 @@ class TradeableItem:
             raise InvalidItemIDError
         return candidate_id
     
+    #QUESTION:  why does this method proxy the search?
     def _initialize_item_id(self):
         """Set the value for the tradeable item ID
 
@@ -136,19 +137,31 @@ class TradeableItem:
             Index: Timestamps as pandas datetime objects
         """
         
-        close_series, average_series = self._collect_price_time_series()
-        volume_series = self._collect_volume_time_series()
+        #old school bonds do not have trade volume data available
+        if self.id!=13190:        
+            close_series, average_series = self._collect_price_time_series()
+            volume_series = self._collect_volume_time_series()
 
-        vdf = volume_series.to_pandas_dataframe("Volume")
-        cdf = close_series.to_pandas_dataframe("Close")
-        adf = average_series.to_pandas_dataframe("Average")
-        
-        #outer join close and average
-        price_df = cdf.join(adf, on=None, how="outer", lsuffix="_close", rsuffix="_average")
-        
-        df = price_df.merge(vdf, how="outer", left_on=price_df["Timestamps_close"], right_on=vdf["Timestamps"], validate="one_to_one").dropna()
-        df = df.rename(columns={"key_0":"Item Timestamps"})
-        return df
+            vdf = volume_series.to_pandas_dataframe("Volume")
+            cdf = close_series.to_pandas_dataframe("Close")
+            adf = average_series.to_pandas_dataframe("Average")
+            
+            #outer join close and average
+            price_df = cdf.join(adf, on=None, how="outer", lsuffix="_close", rsuffix="_average")
+            
+            #combined price and trade volume frame
+            df = price_df.merge(vdf, how="outer", left_on=price_df["Timestamps_close"], right_on=vdf["Timestamps"], validate="one_to_one").dropna()
+            df = df.rename(columns={"key_0":"Item Timestamps"})
+            return df
+
+        #only collect old school bond price data
+        else:
+            close_series, average_series = self._collect_price_time_series()
+            
+            cdf = close_series.to_pandas_dataframe("Close")
+            adf = average_series.to_pandas_dataframe("Average")
+            
+            return cdf.join(adf, on=None, how="outer", lsuffix="_close", rsuffix="_average")
 
     ### PLOTTING ###
     def plot_bar_graph(self, index, signal, title, ylabel="", steps=25, save_plot=True, verbose=False):
