@@ -130,3 +130,6 @@ dmypy.json
 
 # Mac OSX
 .DS_Store
+
+# Notebooks
+Example Fast Fourier Transform.ipynb
